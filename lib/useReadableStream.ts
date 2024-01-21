@@ -1,11 +1,14 @@
 'use client'
 
-import {StreamData} from "@/lib/types";
-import { getURL } from '@/lib/utils'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import {StreamData} from "@/lib/types";
 
-export function useReadableStream(endpoint: string, toastId?: string) {
+export function useReadableStream(
+    input: string | URL | Request,
+    init?: RequestInit | undefined,
+    toastId?: string
+) {
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
     const [data, setData] = useState<StreamData>({
@@ -17,16 +20,25 @@ export function useReadableStream(endpoint: string, toastId?: string) {
 
     async function fetcher() {
         setIsLoading(true)
-        const response = await fetch(getURL() + endpoint, { method: 'POST' })
+        const response = await fetch(input, init)
         const reader = response.body!.getReader()
         const decoder = new TextDecoder()
 
         while (true) {
             const { value, done } = await reader.read()
             if (done) break
-            const data = JSON.parse(decoder.decode(value)) as StreamData
-            setData(data)
-            if (toastId) toaster(data, toastId)
+
+            // Split the string into an array of individual JSON objects
+            const stream = decoder.decode(value)
+            console.log(stream)
+            const jsonObjects = stream.trim().split('\n')
+
+            // Now you can parse each JSON object
+            jsonObjects.forEach((jsonStr) => {
+                const data = JSON.parse(jsonStr) as StreamData
+                setData(data)
+                if (toastId) toaster(data, toastId)
+            })
         }
         setIsLoading(false)
     }

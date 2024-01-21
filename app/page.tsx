@@ -6,7 +6,7 @@ import {ModeToggle} from "@/components/mode-toggle";
 import {useReadableStream} from "@/lib/useReadableStream";
 
 export default function Home() {
-    const { fetcher, data, isLoading } = useReadableStream('api/fetch-sse', 'fetch-sse')
+    const {data, isLoading, fetcher } = useReadableStream('/api/fetch-sse', {method: 'POST'}, 'fetch-sse')
 
     return (
         <div className="flex h-screen flex-col items-center justify-center bg-[url('/bg-light.png')] dark:bg-[url('/bg-dark.png')]">

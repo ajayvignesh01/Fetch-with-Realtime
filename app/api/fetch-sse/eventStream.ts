@@ -5,16 +5,58 @@ export function eventStream(request: NextRequest) {
   const writer = stream.writable.getWriter()
   const encoder = new TextEncoder()
 
-  async function update(complete: boolean, success: boolean, message: string, progress: number) {
+  /**
+   * Send updates to client
+   * @param message - string message to display in toast
+   * @param progress - number progress to display in button progress
+   */
+  async function update(message: string, progress: number) {
     if (!request.signal.aborted) {
-      const data = JSON.stringify({ complete, success, message, progress })
-      await writer.write(encoder.encode(data))
+      const data = JSON.stringify({ complete: false, success: false, message, progress })
+      await writer.write(encoder.encode(`${data}\n`))
+    }
+  }
+
+  /**
+   * Send error to client
+   * @param message - string message to display in toast
+   * @param progress - number progress to display in button progress
+   */
+  async function error(message: string, progress: number) {
+    if (!request.signal.aborted) {
+      const data = JSON.stringify({ complete: true, success: false, message, progress })
+      await writer.write(encoder.encode(`${data}\n`))
+
+      // return
+    }
+  }
+
+  /**
+   * Send success to client
+   * @param message - string message to display in toast
+   * @param progress - number progress to display in button progress
+   */
+  async function success(message: string, progress: number) {
+    if (!request.signal.aborted) {
+      const data = JSON.stringify({ complete: true, success: true, message, progress })
+      await writer.write(encoder.encode(`${data}\n`))
+    }
+  }
+
+  /**
+   * Close the stream and terminate server process
+   */
+  async function close() {
+    if (!request.signal.aborted) {
+      await writer.close()
     }
   }
 
   return {
     readable: stream.readable,
     update,
-    close: async () => await writer.close()
+    error,
+    success,
+    close
   }
 }
