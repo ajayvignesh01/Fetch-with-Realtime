@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 
-export function eventStream(request: NextRequest) {
+export function realtimeStream(request: NextRequest) {
   const stream = new TransformStream()
   const writer = stream.writable.getWriter()
   const encoder = new TextEncoder()
@@ -10,9 +10,9 @@ export function eventStream(request: NextRequest) {
    * @param message - string message to display in toast
    * @param progress - number progress to display in button progress
    */
-  async function update(message: string, progress: number) {
+  async function message(message: string, progress: number) {
     if (!request.signal.aborted) {
-      const data = JSON.stringify({ complete: false, success: false, message, progress })
+      const data = JSON.stringify({ event: 'message', data: {message, progress} })
       await writer.write(encoder.encode(`${data}\n`))
     }
   }
@@ -20,11 +20,10 @@ export function eventStream(request: NextRequest) {
   /**
    * Send error to client
    * @param message - string message to display in toast
-   * @param progress - number progress to display in button progress
    */
-  async function error(message: string, progress: number) {
+  async function error(message: string) {
     if (!request.signal.aborted) {
-      const data = JSON.stringify({ complete: true, success: false, message, progress })
+      const data = JSON.stringify({ event: 'error', data: {message, progress: 0} })
       await writer.write(encoder.encode(`${data}\n`))
 
       // return
@@ -34,11 +33,10 @@ export function eventStream(request: NextRequest) {
   /**
    * Send success to client
    * @param message - string message to display in toast
-   * @param progress - number progress to display in button progress
    */
-  async function success(message: string, progress: number) {
+  async function success(message: string) {
     if (!request.signal.aborted) {
-      const data = JSON.stringify({ complete: true, success: true, message, progress })
+      const data = JSON.stringify({ event: 'success', data: {message, progress: 100}})
       await writer.write(encoder.encode(`${data}\n`))
     }
   }
@@ -54,7 +52,7 @@ export function eventStream(request: NextRequest) {
 
   return {
     readable: stream.readable,
-    update,
+    message,
     error,
     success,
     close

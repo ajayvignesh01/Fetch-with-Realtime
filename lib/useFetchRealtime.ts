@@ -1,21 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import {StreamData} from "@/lib/types";
 
-export function useReadableStream(
+export function useFetchRealtime(
     input: string | URL | Request,
     init?: RequestInit | undefined,
-    toastId?: string
+    onEvent?: (data: StreamData) => any
 ) {
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
     const [data, setData] = useState<StreamData>({
-        complete: false,
-        success: false,
-        message: '',
-        progress: 0
+        event: 'message',
+        data: {message: '', progress: 0}
     })
 
     async function fetcher() {
@@ -37,35 +34,11 @@ export function useReadableStream(
             jsonObjects.forEach((jsonStr) => {
                 const data = JSON.parse(jsonStr) as StreamData
                 setData(data)
-                if (toastId) toaster(data, toastId)
+                if (onEvent) onEvent(data)
             })
         }
         setIsLoading(false)
     }
 
     return { fetcher, data, isLoading }
-}
-
-function toaster(data: StreamData, toastId: string) {
-    if (data.complete) {
-        if (data.success) {
-            toast.success(data.message, {
-                id: toastId,
-                position: 'top-center',
-                duration: 4000
-            })
-        } else {
-            toast.error(data.message, {
-                id: toastId,
-                position: 'top-center',
-                duration: 4000
-            })
-        }
-    } else {
-        toast.loading(data.message, {
-            id: toastId,
-            position: 'top-center',
-            duration: 10000
-        })
-    }
 }

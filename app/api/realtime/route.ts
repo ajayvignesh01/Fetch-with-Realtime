@@ -1,4 +1,4 @@
-import { eventStream } from './eventStream'
+import { realtimeStream } from './realtimeStream'
 import { delay } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 import {Stream} from "@/lib/types";
@@ -7,10 +7,9 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  const stream = eventStream(request)
-  const body = await request.json()
+  const stream = realtimeStream(request)
 
-  action(stream, body).then(() => stream.close())
+  action(stream, request).then(() => stream.close())
 
   return new NextResponse(stream.readable, {
     headers: {
@@ -21,18 +20,18 @@ export async function POST(request: NextRequest) {
   })
 }
 
-async function action(stream: Stream, body: any) {
-  await stream.update('Hello from the Server', 0)
+async function action(stream: Stream, request: NextRequest) {
+  await stream.message('Hello from the Server', 0)
 
   await delay(1000) // fake api request
-  await stream.update('Server Sent Event 1', 25)
+  await stream.message('Server Sent Event 1', 25)
 
   await delay(1000) // fake api request
-  await stream.update('Server Sent Event 2', 50)
+  await stream.message('Server Sent Event 2', 50)
 
   await delay(1000) // fake api request
-  await stream.update('Server Sent Event 3', 75)
+  await stream.message('Server Sent Event 3', 75)
 
   await delay(1000) // fake api request
-  await stream.success('Bye to the Client', 100)
+  await stream.success('Bye to the Client')
 }

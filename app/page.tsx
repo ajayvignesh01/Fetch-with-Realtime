@@ -3,10 +3,12 @@
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import {ModeToggle} from "@/components/mode-toggle";
-import {useReadableStream} from "@/lib/useReadableStream";
+import {useFetchRealtime} from "@/lib/useFetchRealtime";
+import {StreamData} from "@/lib/types";
+import {toast} from "sonner";
 
 export default function Home() {
-    const {data, isLoading, fetcher } = useReadableStream('api/fetch-sse', {method: 'POST', body: JSON.stringify({})}, 'fetch-sse')
+    const {data, isLoading, fetcher } = useFetchRealtime('api/realtime', {method: 'POST', body: JSON.stringify({})}, toaster)
 
     return (
         <div className="flex h-screen flex-col items-center justify-center bg-[url('/bg-light.png')] dark:bg-[url('/bg-dark.png')]">
@@ -22,7 +24,31 @@ export default function Home() {
             >
                 Fetch with SSE
             </Button>
-            <Progress value={data.progress} className='h-1 w-[60%] rounded-none rounded-b-md' />
+            <Progress value={data.data.progress} className='h-1 w-[60%] rounded-none rounded-b-md' />
         </div>
     )
+}
+
+function toaster(data: StreamData) {
+    if (data.event === 'message') {
+        toast.loading(data.data.message, {
+            id: 'realtime',
+            position: 'top-center',
+            duration: 10000
+        })
+    }
+    else if (data.event === 'success') {
+        toast.success(data.data.message, {
+            id: 'realtime',
+            position: 'top-center',
+            duration: 4000
+        })
+    }
+    else if (data.event === 'error') {
+        toast.error(data.data.message, {
+            id: 'realtime',
+            position: 'top-center',
+            duration: 4000
+        })
+    }
 }

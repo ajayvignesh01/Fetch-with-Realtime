@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-with-fetch-sse",
+  "name": "fetch-with-realtime",
   "version": "0.1.0",
   "private": true,
   "scripts": {
