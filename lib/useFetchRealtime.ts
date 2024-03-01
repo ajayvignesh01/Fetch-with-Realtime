@@ -6,7 +6,8 @@ import {StreamData} from "@/lib/types";
 export function useFetchRealtime(
     input: string | URL | Request,
     init?: RequestInit | undefined,
-    onEvent?: (data: StreamData) => any
+    onEvent?: (data: StreamData) => any,
+    postAction?: () => any
 ) {
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -38,6 +39,7 @@ export function useFetchRealtime(
             })
         }
         setIsLoading(false)
+        if (postAction) postAction()
     }
 
     return { fetcher, data, isLoading }
